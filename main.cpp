@@ -24,13 +24,13 @@ const std::string i0_keyword_commitd("commitd");
 const std::string i0_keyword_register("register");
 const std::string native_standalone("__attribute__((aligned(0x1000)))");
 const std::string native_abort(
-		"do{void abort(void) __attribute__((noreturn)); abort();}while(0)");
+		"do{void l0_syscall_abort(void) __attribute__((noreturn)); l0_syscall_abort();}while(0)");
 const std::string native_abortd(
-		"do{void abortd(void) __attribute__((noreturn)); abortd();}while(0)");
+		"do{void l0_syscall_abortd(void) __attribute__((noreturn)); l0_syscall_abortd();}while(0)");
 const std::string native_commit(
-		"do{void commit(void) __attribute__((noreturn)); commit();}while(0)");
+		"do{void l0_syscall_commit(void) __attribute__((noreturn)); l0_syscall_commit();}while(0)");
 const std::string native_commitd(
-		"do{void commitd(void) __attribute__((noreturn)); commitd();}while(0)");
+		"do{void l0_syscall_commitd(void) __attribute__((noreturn)); l0_syscall_commitd();}while(0)");
 typedef std::map<std::string, std::string> i0_str_map_type;
 i0_str_map_type str_replace_map;
 void init() __attribute__((constructor));
@@ -202,12 +202,12 @@ static pstrstr split_addr_size(const str_cit& begin, const str_cit& end) {
 						|| (find_result[0].second > last_rcursor)) {
 					throw parser_error("check meta range", rcursor);
 				}
-				return pstrstr(std::string("(unsigned char*)(") + std::string(begin, rcursor) + std::string(")"),
-						std::string("(unsigned char*)(&((") + std::string(begin, rcursor)
+				return pstrstr(std::string("(char*)(") + std::string(begin, rcursor) + std::string(")"),
+						std::string("(char*)(&((") + std::string(begin, rcursor)
 								+ std::string(")[")
 								+ std::string(find_result[0].second,
 										last_rcursor) + std::string("))-")
-								+ std::string("(unsigned char*)(&((")
+								+ std::string("(char*)(&((")
 								+ std::string(begin, rcursor) + std::string(")")
 								+ std::string(rcursor, find_result[0].first)
 								+ std::string("]))"));
@@ -220,7 +220,7 @@ static pstrstr split_addr_size(const str_cit& begin, const str_cit& end) {
 	}
 	return pstrstr(
 			std::string(
-					std::string("(unsigned char*)(&(") + std::string(begin, end)
+					std::string("(char*)(&(") + std::string(begin, end)
 							+ std::string("))")),
 			std::string(
 					std::string("sizeof(") + std::string(begin, end)
@@ -254,8 +254,8 @@ static std::string convert_range_meta_to_struct(const char* name,
 	if (!list_of_ranges.empty()) {
 		buf <<
 			"struct __attribute__((packed)){"
-				"unsigned char* base;"
-				"unsigned long len;"
+				"char* base;"
+				"long len;"
 			"} ranges[" << list_of_ranges.size() << "];";
 	}
 	buf <<

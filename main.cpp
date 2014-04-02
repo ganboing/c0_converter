@@ -21,6 +21,7 @@ const std::string i0_keyword_abort("abort");
 const std::string i0_keyword_abortd("abortd");
 const std::string i0_keyword_commit("commit");
 const std::string i0_keyword_commitd("commitd");
+const std::string i0_keyword_register("register");
 const std::string native_standalone("__attribute__((aligned(0x1000)))");
 const std::string native_abort(
 		"do{void abort(void) __attribute__((noreturn)); abort();}while(0)");
@@ -39,6 +40,7 @@ void init() {
 	str_replace_map[i0_keyword_commit] = native_commit;
 	str_replace_map[i0_keyword_commitd] = native_commitd;
 	str_replace_map[i0_keyword_standalone] = native_standalone;
+	str_replace_map[i0_keyword_register] = "";
 }
 }
 
@@ -201,14 +203,14 @@ static pstrstr split_addr_size(const str_cit& begin, const str_cit& end) {
 					throw parser_error("check meta range", rcursor);
 				}
 				return pstrstr(std::string(begin, rcursor),
-						std::string("&((") + std::string(begin, rcursor)
+						std::string("(char*)(&((") + std::string(begin, rcursor)
 								+ std::string(")[")
 								+ std::string(find_result[0].second,
-										last_rcursor) + std::string(")-")
-								+ std::string("&((")
+										last_rcursor) + std::string("))-")
+								+ std::string("(char*)(&((")
 								+ std::string(begin, rcursor) + std::string(")")
 								+ std::string(rcursor, find_result[0].first)
-								+ std::string("])"));
+								+ std::string("]))"));
 			}
 			if (rcursor == begin) {
 				throw parser_error("check meta range", rcursor);
@@ -252,7 +254,7 @@ static std::string convert_range_meta_to_struct(const char* name,
 	if (!list_of_ranges.empty()) {
 		buf <<
 			"struct __attribute__((packed)){"
-				"unsigned long base;"
+				"unsigned char* base;"
 				"unsigned long len;"
 			"} ranges[" << list_of_ranges.size() << "];";
 	}
@@ -266,7 +268,7 @@ static std::string convert_range_meta_to_struct(const char* name,
 		for (std::list<pstrstr>::const_iterator i = list_of_ranges.begin();
 				i != list_of_ranges.end(); ++i, ++cnt) {
 			buf <<
-			name << ".ranges[" << cnt << "].base = (" << i->first << ");" <<
+			name << ".ranges[" << cnt << "].base = (" << "(char*)" << i->first << ");" <<
 			name << ".ranges[" << cnt << "].len = (" << i->second << ");";
 		}
 		buf <<
@@ -309,7 +311,8 @@ static std::string convert_to_l0_spawn_syscall(const str_cit& begin,
 			convert_range_meta_to_struct("runner_using", parse_using_watching_ranges(using_begin, using_end)) <<
 			convert_range_meta_to_struct("runner_watching",parse_using_watching_ranges(watching_begin, watching_end)) <<
 			"extern void l0_syscall_spawn(const char*, const char*,const char*);"
-			"l0_syscall_spawn(newr0, runner_using, runner_watching);"
+			"extern void newr0(void);"
+			"l0_syscall_spawn((char*)newr0, (char*)&runner_using, (char*)&runner_watching);"
 			"{" <<
 				std::string(func_call_begin, func_call_end) << ";" <<
 			"}"

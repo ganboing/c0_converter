@@ -311,7 +311,7 @@ static std::string convert_to_l0_spawn_syscall(const str_cit& begin,
 			convert_range_meta_to_struct("runner_using", parse_using_watching_ranges(using_begin, using_end)) <<
 			convert_range_meta_to_struct("runner_watching",parse_using_watching_ranges(watching_begin, watching_end)) <<
 			"extern void l0_syscall_spawn(const char*, const char*,const char*);"
-			"extern void newr0(void);"
+			"extern void l0_newr0(void);"
 			"l0_syscall_spawn((char*)newr0, (char*)&runner_using, (char*)&runner_watching);"
 			"{" <<
 				std::string(func_call_begin, func_call_end) << ";" <<

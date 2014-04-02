@@ -203,11 +203,11 @@ static pstrstr split_addr_size(const str_cit& begin, const str_cit& end) {
 					throw parser_error("check meta range", rcursor);
 				}
 				return pstrstr(std::string(begin, rcursor),
-						std::string("(char*)(&((") + std::string(begin, rcursor)
+						std::string("(unsigned char*)(&((") + std::string(begin, rcursor)
 								+ std::string(")[")
 								+ std::string(find_result[0].second,
 										last_rcursor) + std::string("))-")
-								+ std::string("(char*)(&((")
+								+ std::string("(unsigned char*)(&((")
 								+ std::string(begin, rcursor) + std::string(")")
 								+ std::string(rcursor, find_result[0].first)
 								+ std::string("]))"));

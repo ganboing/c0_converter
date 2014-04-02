@@ -68,12 +68,11 @@ static void build_line_number_vector(const str_cit& begin,
 	vec.resize(vec.size());
 }
 
-static file_position_t find_pos_in_file(const line_vect_t& vec,
-		str_cit_diff_t file_offset) {
-	line_vect_cit nxt_line_it = std::upper_bound(vec.begin(), vec.end(),
+static file_position_t find_pos_in_file(str_cit_diff_t file_offset) {
+	line_vect_cit nxt_line_it = std::upper_bound(file_line_info.begin(), file_line_info.end(),
 			file_offset);
 	line_vect_cit current_line_it = nxt_line_it - 1;
-	line_vect_cit_diff_t line_number = current_line_it - vec.begin() + 1;
+	line_vect_cit_diff_t line_number = current_line_it - file_line_info.begin() + 1;
 	str_cit_diff_t line_offset = file_offset - *(current_line_it) + 1;
 	return file_position_t(line_number, line_offset);
 }
@@ -82,8 +81,7 @@ class parser_error: public std::exception {
 public:
 	parser_error(const char* what, const str_cit& i) throw () {
 		std::stringstream buf;
-		file_position_t pos_info = find_pos_in_file(file_line_info,
-				i - c0_src_begin);
+		file_position_t pos_info = find_pos_in_file(i - c0_src_begin);
 		buf << what << pos_info.first << " ," << pos_info.second << std::endl;
 		msg = buf.str();
 		raise(SIGTRAP);
@@ -306,6 +304,8 @@ static std::string convert_to_l0_spawn_syscall(const str_cit& begin,
 		last_end = current_end;
 	}
 	std::stringstream buf;
+	file_position_t func_call_begin_pos = find_pos_in_file(func_call_begin - c0_src_begin);
+	file_position_t func_call_end_pos = find_pos_in_file(func_call_end - c0_src_begin);
 	buf <<
 		"do{" <<
 			convert_range_meta_to_struct("runner_using", parse_using_watching_ranges(using_begin, using_end)) <<
@@ -314,7 +314,9 @@ static std::string convert_to_l0_spawn_syscall(const str_cit& begin,
 			"extern void l0_newr0(void);"
 			"l0_syscall_spawn((char*)l0_newr0, (char*)&runner_using, (char*)&runner_watching);"
 			"{" <<
+"\nl0_spawn_begin_" << func_call_begin_pos.first << "_" << func_call_begin_pos.second << ": (void)0;\n" <<
 				std::string(func_call_begin, func_call_end) << ";" <<
+"\nl0_spawn_end_" << func_call_end_pos.first << "_" << func_call_end_pos.second << ": (void)0;\n"
 			"}"
 		"}while(0)";
 	return buf.str();

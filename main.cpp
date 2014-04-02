@@ -220,7 +220,7 @@ static pstrstr split_addr_size(const str_cit& begin, const str_cit& end) {
 	}
 	return pstrstr(
 			std::string(
-					std::string("(char*)(&(") + std::string(begin, end)
+					std::string("(unsigned char*)(&(") + std::string(begin, end)
 							+ std::string("))")),
 			std::string(
 					std::string("sizeof(") + std::string(begin, end)

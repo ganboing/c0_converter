@@ -202,7 +202,7 @@ static pstrstr split_addr_size(const str_cit& begin, const str_cit& end) {
 						|| (find_result[0].second > last_rcursor)) {
 					throw parser_error("check meta range", rcursor);
 				}
-				return pstrstr(std::string(begin, rcursor),
+				return pstrstr(std::string("(unsigned char*)(") + std::string(begin, rcursor) + std::string(")"),
 						std::string("(unsigned char*)(&((") + std::string(begin, rcursor)
 								+ std::string(")[")
 								+ std::string(find_result[0].second,
@@ -220,8 +220,8 @@ static pstrstr split_addr_size(const str_cit& begin, const str_cit& end) {
 	}
 	return pstrstr(
 			std::string(
-					std::string("&(") + std::string(begin, end)
-							+ std::string(")")),
+					std::string("(char*)(&(") + std::string(begin, end)
+							+ std::string("))")),
 			std::string(
 					std::string("sizeof(") + std::string(begin, end)
 							+ std::string(")")));
@@ -268,7 +268,7 @@ static std::string convert_range_meta_to_struct(const char* name,
 		for (std::list<pstrstr>::const_iterator i = list_of_ranges.begin();
 				i != list_of_ranges.end(); ++i, ++cnt) {
 			buf <<
-			name << ".ranges[" << cnt << "].base = (" << "(char*)" << i->first << ");" <<
+			name << ".ranges[" << cnt << "].base = (" << i->first << ");" <<
 			name << ".ranges[" << cnt << "].len = (" << i->second << ");";
 		}
 		buf <<
